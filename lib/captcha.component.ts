@@ -1,6 +1,7 @@
 import {
     Component,
     OnInit,
+    OnDestroy,
     Input,
     Output,
     EventEmitter,
@@ -21,7 +22,7 @@ import { ReCaptchaService } from './captcha.service';
         }
     ]
 })
-export class ReCaptchaComponent implements OnInit, ControlValueAccessor {
+export class ReCaptchaComponent implements OnInit, ControlValueAccessor, OnDestroy {
 
     @Input() site_key: string = null;
     @Input() theme = 'light';
@@ -40,6 +41,7 @@ export class ReCaptchaComponent implements OnInit, ControlValueAccessor {
 
     onChange: Function = () => {};
     onTouched: Function = () => {};
+    sub: any;
 
     constructor(
         private _zone: NgZone,
@@ -48,7 +50,7 @@ export class ReCaptchaComponent implements OnInit, ControlValueAccessor {
     }
 
     ngOnInit() {
-        this._captchaService.getReady(this.language)
+        this.sub = this._captchaService.getReady(this.language)
             .subscribe((ready) => {
                 if (!ready)
                     return;
@@ -64,6 +66,10 @@ export class ReCaptchaComponent implements OnInit, ControlValueAccessor {
                     'expired-callback': <any>(() => this._zone.run(this.recaptchaExpiredCallback.bind(this)))
                 });
             });
+    }
+
+    ngOnDestroy(){
+        this.sub.unsubscribe();
     }
 
     // noinspection JSUnusedGlobalSymbols
